@@ -11,6 +11,7 @@ use App\Http\Requests\RestoreClientRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Models\User;
 
 class ClientController extends Controller
 {
@@ -169,8 +170,9 @@ class ClientController extends Controller
 
     public function eliminados(Request $request)
     {
-        // Solo administradores pueden ver clientes eliminados
-        if (!Auth::user()->hasRole('Administrador')) {
+        /** @var User $user */
+        $user = Auth::user();
+        if (! $user->hasRole('Administrador')) {
             return back()->withErrors(['error' => 'No tienes permisos para realizar esta acción.']);
         }
 

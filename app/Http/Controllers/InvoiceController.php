@@ -42,7 +42,6 @@ class InvoiceController extends Controller
                     });
             });
         }
-
         // Registros por página
         $perPage = $request->input('per_page', 10);
         $perPage = max(1, min(100, (int) $perPage)); // Limit between 1 and 100
@@ -207,9 +206,11 @@ class InvoiceController extends Controller
             $oldValues = $invoice->toArray();
 
             // Restituir stock
-            foreach ($invoice->items as $item) {
+            /** @var \App\Models\InvoiceItem $item */
+            /** @var \App\Models\InvoiceItem $item */
+            foreach ($invoice->items()->get() as $item) {
                 $product = $item->product;
-                if ($product) {
+                if ($product !== null) {
                     $product->increaseStock($item->quantity);
                 }
             }
@@ -285,13 +286,15 @@ class InvoiceController extends Controller
     public function destroy(Invoice $invoice)
     {
         try {
+            /** @var \App\Models\User $user */
+            $user = Auth::user();
             Log::info('Accediendo a destroy (vista de confirmación)', [
                 'user' => Auth::id(),
                 'invoice' => $invoice->id
             ]);
 
             // Verificar autorización: solo el creador o un administrador pueden eliminar
-            if (!Auth::user()->hasRole('Administrador') && $invoice->user_id !== Auth::id()) {
+            if (!$user->hasRole('Administrador') && $invoice->user_id !== $user->id) {
                 Log::warning('Usuario sin autorización en destroy', [
                     'user' => Auth::id(),
                     'invoice' => $invoice->id
@@ -320,6 +323,8 @@ class InvoiceController extends Controller
     public function confirmDestroy(DeleteInvoiceRequest $request, Invoice $invoice)
     {
         try {
+            /** @var \App\Models\User $user */
+            $user = Auth::user();
             // Log para debugging
             Log::info('Inicio de confirmDestroy', [
                 'user' => Auth::id(),
@@ -328,7 +333,7 @@ class InvoiceController extends Controller
             ]);
 
             // Verificar autorización
-            if (!Auth::user()->hasRole('Administrador') && $invoice->user_id !== Auth::id()) {
+            if (!$user->hasRole('Administrador') && $invoice->user_id !== $user->id) {
                 Log::warning('Usuario sin autorización intentó eliminar factura', [
                     'user' => Auth::id(),
                     'invoice' => $invoice->id
@@ -344,9 +349,10 @@ class InvoiceController extends Controller
             try {
                 // Solo restaurar stock si está activa
                 if ($invoice->status === 'active') {
-                    foreach ($invoice->items as $item) {
-                        $product = Product::find($item->product_id);
-                        if ($product) {
+                /** @var \App\Models\InvoiceItem $item */
+                    foreach ($invoice->items()->get() as $item) {
+                        $product = $item->product;
+                        if ($product !== null) {
                             $product->increment('stock', $item->quantity);
                         }
                     }
@@ -393,7 +399,9 @@ class InvoiceController extends Controller
     // Métodos solo para administradores - eliminación completa
     public function eliminados(Request $request)
     {
-        if (!Auth::user()->hasRole('Administrador')) {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if (!$user->hasRole('Administrador')) {
             abort(403, 'Solo los administradores pueden acceder a esta sección.');
         }
 
@@ -436,17 +444,20 @@ class InvoiceController extends Controller
 
         try {
             // Verificar que hay suficiente stock para restaurar
-            foreach ($invoice->items as $item) {
-                $product = Product::find($item->product_id);
-                if ($product && $product->stock < $item->quantity) {
+            /** @var \App\Models\InvoiceItem $item */
+            /** @var \App\Models\InvoiceItem $item */
+            foreach ($invoice->items()->get() as $item) {
+                $product = $item->product;
+                if ($product !== null && $product->stock < $item->quantity) {
                     return back()->with('error', "No hay suficiente stock de {$product->name} para restaurar esta factura.");
                 }
             }
 
             // Reducir stock nuevamente
-            foreach ($invoice->items as $item) {
-                $product = Product::find($item->product_id);
-                if ($product) {
+            /** @var \App\Models\InvoiceItem $item */
+            foreach ($invoice->items()->get() as $item) {
+                $product = $item->product;
+                if ($product !== null) {
                     $product->decrement('stock', $item->quantity);
                 }
             }

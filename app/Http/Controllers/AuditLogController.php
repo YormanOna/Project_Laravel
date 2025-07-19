@@ -1,25 +1,28 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\AuditLog;
 use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 
 class AuditLogController extends Controller
 {
     public function index(Request $request)
     {
-        if (!Auth::user()->hasRole('Administrador')) {
+        /** @var User $user */
+        $user = Auth::user();
+        if (! $user->hasRole('Administrador')) {
             abort(403, 'No tienes permiso para acceder a esta sección.');
         }
 
         $query = AuditLog::with('user');
 
-        // Filtro por búsqueda
         if ($request->filled('search')) {
             $search = $request->input('search');
-            $query->where(function($q) use ($search) {
-                $q->whereHas('user', function($sub) use ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('user', function ($sub) use ($search) {
                     $sub->where('name', 'like', "%{$search}%")
                         ->orWhere('email', 'like', "%{$search}%");
                 })
@@ -28,7 +31,6 @@ class AuditLogController extends Controller
             });
         }
 
-        // Filtro por acción
         if ($request->filled('action_filter') && $request->input('action_filter') !== '') {
             $query->where('action', $request->input('action_filter'));
         }
@@ -37,10 +39,8 @@ class AuditLogController extends Controller
 
         $logs = $query->latest()->paginate($perPage)->withQueryString();
 
-        // Obtener acciones únicas para el filtro
         $actions = AuditLog::distinct()->pluck('action')->sort()->values();
 
-        // Si es una petición AJAX, devolver solo los datos
         if ($request->ajax() || $request->get('ajax')) {
             return response()->json([
                 'table' => view('admin.partials.audit-logs-table', compact('logs'))->render(),
@@ -56,27 +56,27 @@ class AuditLogController extends Controller
 
     public function details($id)
     {
-        if (!Auth::user()->hasRole('Administrador')) {
+        /** @var User $user */
+        $user = Auth::user();
+        if (! $user->hasRole('Administrador')) {
             abort(403, 'No tienes permiso para acceder a esta sección.');
         }
 
         $log = AuditLog::with('user')->findOrFail($id);
-        
-        // Format action label
+
         $actionLabels = [
             'create' => 'Crear',
-            'update' => 'Actualizar', 
+            'update' => 'Actualizar',
             'delete' => 'Eliminar',
             'restore' => 'Restaurar',
             'status_change' => 'Cambio de Estado',
             'force_delete' => 'Eliminación Permanente',
             'send_email' => 'Envío de Email'
         ];
-        
-        // Format table label
+
         $tableLabels = [
             'users' => '👥 Usuarios',
-            'clients' => '🏢 Clientes', 
+            'clients' => '🏢 Clientes',
             'products' => '📦 Productos',
             'invoices' => '🧾 Facturas',
             'invoice_items' => '📋 Items de Factura',
@@ -87,7 +87,7 @@ class AuditLogController extends Controller
             'categories' => '🏷️ Categorías',
             'suppliers' => '🚚 Proveedores'
         ];
-        
+
         $data = [
             'id' => $log->id,
             'user_name' => $log->user->name ?? 'Usuario eliminado',
@@ -97,12 +97,12 @@ class AuditLogController extends Controller
             'table_name' => $log->table_name,
             'table_label' => $tableLabels[$log->table_name] ?? ('📄 ' . ($log->table_name ?: 'N/A')),
             'record_id' => $log->record_id,
-            'old_values' => $log->old_values ? json_decode($log->old_values, true) : null,
-            'new_values' => $log->new_values ? json_decode($log->new_values, true) : null,
+            'old_values' => $log->old_values ?? [],
+            'new_values' => $log->new_values ?? [],
             'formatted_date' => $log->created_at->setTimezone('America/Guayaquil')->format('d/m/Y H:i:s'),
             'created_at' => $log->created_at
         ];
-        
+
         return response()->json($data);
     }
 }

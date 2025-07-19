@@ -148,7 +148,7 @@ class ProductController extends Controller
             'old_values' => json_encode($oldValues),
             'new_values' => json_encode([
                 'razon' => $validated['razon'],
-                'deleted_by' => Auth::user()?->name ?? 'Sistema',
+                'deleted_by' => Auth::user()->name ?? 'Sistema',
             ]),
         ]);
 

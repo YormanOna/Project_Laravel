@@ -8,6 +8,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\InvoiceItem[] $items
+ * @property-read \App\Models\Client $client
+ * @property-read \App\Models\User $user
+ */
 class Invoice extends Model
 {
     use HasFactory, SoftDeletes;
@@ -88,6 +93,6 @@ class Invoice extends Model
     {
         $lastInvoice = self::latest('id')->first();
         $number = $lastInvoice ? $lastInvoice->id + 1 : 1;
-        return 'INV-' . str_pad($number, 6, '0', STR_PAD_LEFT);
+        return 'INV-' . str_pad((string) $number, 6, '0', STR_PAD_LEFT);
     }
 }

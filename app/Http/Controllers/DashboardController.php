@@ -9,11 +9,13 @@ use App\Models\AuditLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 
 class DashboardController extends Controller
 {
     public function index()
     {
+        /** @var User $user */
         $user = Auth::user();
         
         // Estadísticas generales
@@ -298,23 +300,6 @@ class DashboardController extends Controller
             ->get();
     }
 
-    // Métodos adicionales para Bodega
-    private function getLowPerformingProducts()
-    {
-        return DB::table('products')
-            ->leftJoin('invoice_items', 'products.id', '=', 'invoice_items.product_id')
-            ->select(
-                'products.*',
-                DB::raw('COALESCE(SUM(invoice_items.quantity), 0) as total_sold'),
-                DB::raw('products.stock * products.price as stock_value')
-            )
-            ->where('products.is_active', true)
-            ->where('products.stock', '>', 0)
-            ->groupBy('products.id', 'products.name', 'products.description', 'products.price', 'products.stock', 'products.is_active', 'products.created_at', 'products.updated_at')
-            ->orderBy('total_sold', 'asc')
-            ->take(5)
-            ->get();
-    }
 
     private function getSimpleStockAlerts()
     {
@@ -366,37 +351,4 @@ class DashboardController extends Controller
         ];
     }
 
-    private function getSeasonalTrends()
-    {
-        // Análisis de ventas por mes para detectar tendencias estacionales
-        return DB::table('invoice_items')
-            ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
-            ->join('products', 'invoice_items.product_id', '=', 'products.id')
-            ->select(
-                DB::raw('EXTRACT(MONTH FROM invoices.created_at) as month'),
-                'products.name',
-                DB::raw('SUM(invoice_items.quantity) as total_sold')
-            )
-            ->where('invoices.created_at', '>=', now()->subYear())
-            ->groupBy('month', 'products.id', 'products.name')
-            ->orderBy('total_sold', 'desc')
-            ->take(10)
-            ->get();
-    }
-
-    private function getSupplierPerformance()
-    {
-        // Simulamos análisis de proveedores basado en productos
-        return Product::select(
-                DB::raw('LEFT(name, 10) as supplier_category'),
-                DB::raw('COUNT(*) as product_count'),
-                DB::raw('SUM(stock) as total_stock'),
-                DB::raw('AVG(price) as avg_price')
-            )
-            ->where('is_active', true)
-            ->groupBy('supplier_category')
-            ->orderBy('product_count', 'desc')
-            ->take(5)
-            ->get();
-    }
 }

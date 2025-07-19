@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class RestoreInvoiceRequest extends FormRequest
 {
@@ -13,7 +14,9 @@ class RestoreInvoiceRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return Auth::user()->hasRole('Administrador');
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        return $user->hasRole('Administrador');
     }
 
     /**
@@ -59,8 +62,11 @@ class RestoreInvoiceRequest extends FormRequest
     /**
      * Handle a failed authorization attempt.
      */
-    protected function failedAuthorization()
+    protected function failedAuthorization(): void
     {
-        return back()->withErrors(['error' => 'Solo los administradores pueden restaurar facturas.']);
+        $response = back()->withErrors([
+            'error' => 'Solo los administradores pueden restaurar facturas.'
+        ]);
+        throw new HttpResponseException($response);
     }
 }

@@ -22,7 +22,9 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        if (!Auth::user()->hasRole('Administrador')) {
+        /** @var User $user */
+        $user = Auth::user();
+        if (! $user->hasRole('Administrador')) {
             abort(403, 'No tienes permiso para acceder a esta sección.');
         }
 
@@ -72,7 +74,9 @@ class UserController extends Controller
 
     public function create()
     {
-        if (!Auth::user()->hasRole('Administrador')) {
+        /** @var User $user */
+        $user = Auth::user();
+        if (! $user->hasRole('Administrador')) {
             abort(403, 'No tienes permiso para acceder a esta sección.');
         }
 
@@ -114,7 +118,9 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
-        if (!Auth::user()->hasRole('Administrador')) {
+        /** @var User $authUser */
+        $authUser = Auth::user();
+        if (! $authUser->hasRole('Administrador')) {
             abort(403, 'No tienes permiso para acceder a esta sección.');
         }
 
@@ -167,7 +173,9 @@ class UserController extends Controller
 
     public function updateStatus(Request $request, User $user)
     {
-        if (!Auth::user()->hasRole('Administrador')) {
+        /** @var User $authUser */
+        $authUser = Auth::user();
+        if (! $authUser->hasRole('Administrador')) {
             abort(403, 'No tienes permiso para realizar esta acción.');
         }
 
@@ -274,8 +282,10 @@ class UserController extends Controller
 
     public function eliminados(Request $request)
     {
-        if (!Auth::user()->hasRole('Administrador')) {
-            return back()->withErrors(['error' => 'No tienes permisos para realizar esta acción.']);
+        /** @var User $user */
+        $user = Auth::user();
+        if (! $user->hasRole('Administrador')) {
+             return back()->withErrors(['error' => 'No tienes permisos para realizar esta acción.']);
         }
 
         $query = User::onlyTrashed()->with('roles');

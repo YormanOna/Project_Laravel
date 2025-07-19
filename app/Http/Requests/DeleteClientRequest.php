@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 
 class DeleteClientRequest extends FormRequest
 {
@@ -13,7 +14,9 @@ class DeleteClientRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return Auth::user()->hasRole(['Administrador', 'Secretario']);
+        /** @var User $user */
+        $user = Auth::user();
+        return $user->hasRole(['Administrador', 'Secretario']);
     }
 
     /**
