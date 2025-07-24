@@ -3,7 +3,7 @@
         <div class="flex justify-between h-16">
             <div class="flex items-center space-x-4">
                 <a href="{{ route('dashboard') }}" class="flex items-center text-indigo-600 font-bold text-lg">
-                    <i class="fas fa-receipt mr-2"></i> Sistema de Facturación
+                    <i class="fas fa-receipt mr-2"></i> ESPE FACT
                 </a>
                 <div class="hidden md:flex space-x-6">
                     <a href="{{ route('dashboard') }}"

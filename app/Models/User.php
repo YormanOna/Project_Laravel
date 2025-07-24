@@ -8,13 +8,19 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
+use Laravel\Sanctum\HasApiTokens;
+use Laravel\Sanctum\NewAccessToken;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
+
+
 /**
  * @method bool hasRole(string|array $roles)
  */
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasRoles, SoftDeletes;
+    use HasFactory, Notifiable, HasRoles, SoftDeletes, HasApiTokens;
 
     /**
      * The attributes that are mass assignable.
@@ -22,7 +28,11 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name', 'email', 'password', 'is_active','deactivation_reason',
+        'name',
+        'email',
+        'password',
+        'is_active',
+        'deactivation_reason',
     ];
 
     protected $casts = [
@@ -60,5 +70,19 @@ class User extends Authenticatable
     public function cancelledInvoices()
     {
         return $this->hasMany(Invoice::class, 'cancelled_by');
+    }
+
+    public function createToken(string $name, array $abilities = ['*'], bool $storePlain = false)
+    {
+        $plainText = Str::random(40);
+
+        $token = $this->tokens()->create([
+            'name'        => $name,
+            'token'       => hash('sha256', $plainText),
+            'plain_token' => $storePlain ? $plainText : null,
+            'abilities'   => $abilities,
+        ]);
+
+        return new NewAccessToken($token, $token->id . '|' . $plainText);
     }
 }

@@ -112,7 +112,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>SISTEMA DE FACTURACIÓN</h1>
+        <h1>ESPE FACT</h1>
         <div class="invoice-number">FACTURA {{ $invoice->invoice_number }}</div>
         <p>Fecha: {{ $invoice->created_at->format('d/m/Y H:i') }}</p>
     </div>

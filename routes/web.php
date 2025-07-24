@@ -13,6 +13,7 @@ use App\Http\Middleware\VerifyAdmin;
 use App\Http\Middleware\CheckRole;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use App\Models\User;
 
 Route::get('/', function () {
     return view('welcome');
@@ -20,6 +21,8 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'verified', VerifyActiveUser::class])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::post('crearTokenAcceso', [UserController::class, 'crearTokenAcceso'])->name('crearTokenAcceso');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -148,5 +151,11 @@ Route::get('/force-logout', function (Request $request) {
 
     return redirect('/login?reason='.urlencode($reason));
 })->name('force-logout');
+
+Route::post('/tokens/create', function (Request $request) {
+    $token = $request->user()->createToken($request->token_name);
+ 
+    return ['token' => $token->plainTextToken];
+});
 
 require __DIR__.'/auth.php';

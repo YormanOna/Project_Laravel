@@ -15,8 +15,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Validator;
+
 
 class UserController extends Controller
 {
@@ -48,7 +47,7 @@ class UserController extends Controller
             try {
                 $tableHtml = view('admin.users.partials.users-table', compact('users'))->render();
                 $paginationHtml = view('admin.users.partials.users-pagination', compact('users'))->render();
-                
+
                 return response()->json([
                     'table' => $tableHtml,
                     'pagination' => $paginationHtml,
@@ -285,7 +284,7 @@ class UserController extends Controller
         /** @var User $user */
         $user = Auth::user();
         if (! $user->hasRole('Administrador')) {
-             return back()->withErrors(['error' => 'No tienes permisos para realizar esta acción.']);
+            return back()->withErrors(['error' => 'No tienes permisos para realizar esta acción.']);
         }
 
         $query = User::onlyTrashed()->with('roles');
@@ -314,10 +313,10 @@ class UserController extends Controller
         $field = $request->input('field');
         $value = $request->input('value');
         $userId = $request->input('user_id'); // For edit validation
-        
+
         $errors = [];
         $valid = true;
-        
+
         switch ($field) {
             case 'name':
                 if (empty($value)) {
@@ -344,7 +343,7 @@ class UserController extends Controller
                     }
                 }
                 break;
-                
+
             case 'email':
                 if (empty($value)) {
                     $errors[] = 'El email es obligatorio.';
@@ -364,7 +363,7 @@ class UserController extends Controller
                     }
                 }
                 break;
-                
+
             case 'password':
                 if (!empty($value)) { // Solo validar si se proporciona contraseña
                     if (strlen($value) < 8) {
@@ -382,7 +381,7 @@ class UserController extends Controller
                     }
                 }
                 break;
-                
+
             case 'password_confirmation':
                 $password = $request->input('password');
                 if (!empty($password) && $value !== $password) {
@@ -391,10 +390,25 @@ class UserController extends Controller
                 }
                 break;
         }
-        
+
         return response()->json([
             'valid' => $valid,
             'errors' => $errors
         ]);
+    }
+
+    public function crearTokenAcceso(Request $request)
+    {
+        $user = User::find($request->usuario);
+
+        if (! $user) {
+            return back()->withErrors(['error' => 'Usuario no encontrado.']);
+        }
+
+        $token = $user->createToken($request->nombre, ['*'], true);
+
+        return redirect()->route('dashboard')
+            ->with('success', 'Token generado exitosamente.')
+            ->with('token_generado', $token->plainTextToken);
     }
 }

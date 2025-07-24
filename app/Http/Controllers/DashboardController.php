@@ -17,6 +17,10 @@ class DashboardController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
+        $users = User::where('is_active', true)->get();
+        $users = User::with('tokens')->where('is_active', true)->get();
+
+
         
         // Estadísticas generales
         $stats = [
@@ -119,7 +123,8 @@ class DashboardController extends Controller
             'monthly_sales',
             'top_products',
             'secretary_data',
-            'warehouse_data'
+            'warehouse_data',
+            'users'
         ));
     }
 
