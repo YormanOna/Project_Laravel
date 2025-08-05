@@ -113,27 +113,56 @@
                     <form action="{{ route('crearTokenAcceso') }}" method="POST" class="space-y-5">
                         @csrf
 
+                        <!-- Mostrar errores de validación -->
+                        @if ($errors->any())
+                            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-exclamation-triangle text-red-400"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h3 class="text-sm font-medium text-red-800">
+                                            Por favor corrige los siguientes errores:
+                                        </h3>
+                                        <div class="mt-2 text-sm text-red-700">
+                                            <ul class="list-disc pl-5 space-y-1">
+                                                @foreach ($errors->all() as $error)
+                                                    <li>{{ $error }}</li>
+                                                @endforeach
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
                         <div>
                             <label for="usuario" class="block text-sm font-semibold text-gray-700 mb-1">
-                                <i class="fas fa-user-tag text-teal-600 mr-1"></i> Seleccione un usuario
+                                <i class="fas fa-user-tag text-teal-600 mr-1"></i> Seleccione un usuario <span class="text-red-500">*</span>
                             </label>
                             <select name="usuario" id="usuario"
-                                class="form-select w-full rounded-md border-gray-300 shadow-sm focus:ring-teal-500 focus:border-teal-500 bg-gray-50"
+                                class="form-select w-full rounded-md border-gray-300 shadow-sm focus:ring-teal-500 focus:border-teal-500 bg-gray-50 @error('usuario') border-red-500 @enderror"
                                 required>
                                 <option value="" disabled selected>-- Seleccione un usuario --</option>
                                 @foreach ($users as $user)
-                                    <option value="{{ $user->id }}">{{ $user->email }}</option>
+                                    <option value="{{ $user->id }}" {{ old('usuario') == $user->id ? 'selected' : '' }}>{{ $user->email }}</option>
                                 @endforeach
                             </select>
+                            @error('usuario')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <div>
                             <label for="nombre" class="block text-sm font-semibold text-gray-700 mb-1">
-                                <i class="fas fa-id-badge text-teal-600 mr-1"></i> Nombre del token
+                                <i class="fas fa-id-badge text-teal-600 mr-1"></i> Nombre del token <span class="text-red-500">*</span>
                             </label>
-                            <input type="text" name="nombre" id="nombre" required
-                                class="form-control w-full rounded-md border-gray-300 shadow-sm focus:ring-teal-500 focus:border-teal-500 bg-gray-50"
+                            <input type="text" name="nombre" id="nombre" required value="{{ old('nombre') }}"
+                                class="form-control w-full rounded-md border-gray-300 shadow-sm focus:ring-teal-500 focus:border-teal-500 bg-gray-50 @error('nombre') border-red-500 @enderror"
                                 placeholder="Ejemplo: Token para facturación">
+                            @error('nombre')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
                             <p class="text-xs text-gray-500 mt-1">Este nombre es para identificar el token fácilmente.</p>
                         </div>
 

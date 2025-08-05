@@ -23,6 +23,8 @@ Route::middleware(['auth', 'verified', VerifyActiveUser::class])->group(function
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::post('crearTokenAcceso', [UserController::class, 'crearTokenAcceso'])->name('crearTokenAcceso');
+    Route::post('crearTokenAccesoCliente', [ClientController::class, 'crearTokenAcceso'])->name('crearTokenAccesoCliente');
+
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -117,7 +119,7 @@ Route::get('/check-active', function () {
                 ->first();
 
             $reason = $lastLog
-                ? $lastLog->reason
+                ? ($lastLog->details['reason'] ?? null)
                 : ($user ? $user->deactivation_reason : 'Cuenta eliminada.');
 
             return response()->json([

@@ -14,6 +14,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 
 
+
 /**
  * @method bool hasRole(string|array $roles)
  */
@@ -21,6 +22,8 @@ class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasRoles, SoftDeletes, HasApiTokens;
+
+    
 
     /**
      * The attributes that are mass assignable.

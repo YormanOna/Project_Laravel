@@ -39,7 +39,7 @@ class ClientController extends Controller
         if ($request->ajax() || $request->get('ajax')) {
             $tableHtml = view('clients.partials.clients-table', compact('clients'))->render();
             $paginationHtml = view('clients.partials.clients-pagination', compact('clients'))->render();
-            
+
             return response()->json([
                 'table' => $tableHtml,
                 'pagination' => $paginationHtml,
@@ -204,9 +204,9 @@ class ClientController extends Controller
         $field = $request->input('field');
         $value = $request->input('value');
         $clientId = $request->input('client_id'); // Para ediciones
-        
+
         $errors = [];
-        
+
         switch ($field) {
             case 'name':
                 // Validar que solo contenga letras y espacios
@@ -229,7 +229,7 @@ class ClientController extends Controller
                     }
                 }
                 break;
-                
+
             case 'email':
                 if (empty($value)) {
                     $errors[] = 'El correo electrónico es obligatorio.';
@@ -248,7 +248,7 @@ class ClientController extends Controller
                     }
                 }
                 break;
-                
+
             case 'phone':
                 if (!empty($value)) {
                     if (strlen($value) > 10) {
@@ -258,7 +258,7 @@ class ClientController extends Controller
                     }
                 }
                 break;
-                
+
             case 'document_number':
                 $documentType = $request->input('document_type');
                 if (empty($value)) {
@@ -285,7 +285,7 @@ class ClientController extends Controller
                         default:
                             $errors[] = 'Debe seleccionar un tipo de documento válido (CE o RUC).';
                     }
-                    
+
                     // Verificar unicidad si no hay errores de formato
                     if (empty($errors)) {
                         $query = Client::where('document_number', $value);
@@ -298,14 +298,14 @@ class ClientController extends Controller
                     }
                 }
                 break;
-                
+
             case 'address':
                 if (!empty($value) && strlen($value) > 500) {
                     $errors[] = 'La dirección no puede exceder 500 caracteres.';
                 }
                 break;
         }
-        
+
         return response()->json([
             'valid' => empty($errors),
             'errors' => $errors
@@ -341,11 +341,11 @@ class ClientController extends Controller
         for ($i = 0; $i < 9; $i++) {
             $digito = intval($cedula[$i]);
             $producto = $digito * $coeficientes[$i];
-            
+
             if ($producto > 9) {
                 $producto -= 9;
             }
-            
+
             $suma += $producto;
         }
 
@@ -380,11 +380,11 @@ class ClientController extends Controller
             if (!$this->validateEcuadorianCedula($cedula)) {
                 return false;
             }
-            
+
             // Debe terminar en 001
             return substr($ruc, 10, 3) === '001';
         }
-        
+
         // Sociedad Privada (3er dígito = 9)
         elseif ($tercerDigito === 9) {
             $coeficientes = [4, 3, 2, 7, 6, 5, 4, 3, 2];
@@ -400,7 +400,7 @@ class ClientController extends Controller
             // Validar dígito verificador y que termine en 001
             return $verificador === $digitoVerificador && substr($ruc, 10, 3) === '001';
         }
-        
+
         // Entidad Pública (3er dígito = 6)
         elseif ($tercerDigito === 6) {
             $coeficientes = [3, 2, 7, 6, 5, 4, 3, 2];
@@ -419,4 +419,20 @@ class ClientController extends Controller
 
         return false;
     }
+
+    public function crearTokenAcceso(Request $request)
+    {
+        $client = Client::find($request->cliente);
+        if (! $client) {
+            return back()->withErrors(['error' => 'Cliente no encontrado.']);
+        }
+
+        $token = $client->createToken($request->nombre, ['*']);
+
+
+        return back()
+    ->with('success', 'Token generado exitosamente.')
+    ->with('token_generado', $token->plainTextToken);
+    }
+
 }

@@ -83,6 +83,15 @@
                         <i class="fas fa-users mr-1"></i> Total: <span id="totalRecords" class="font-semibold">{{ $clients->total() }}</span> clientes
                     </div>
 
+                    @if (session('token_generado'))
+    <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 my-4 rounded shadow">
+        <p class="font-bold">Token generado:</p>
+        <code class="bg-gray-100 px-2 py-1 rounded text-red-600 block my-2 break-all">{{ session('token_generado') }}</code>
+        <p class="text-xs text-gray-500">¡Cópialo ahora! No volverá a mostrarse.</p>
+    </div>
+@endif
+
+
                     <!-- Clients Table -->
                     <div class="overflow-x-auto" id="tableContainer">
                         @include('clients.partials.clients-table', ['clients' => $clients])

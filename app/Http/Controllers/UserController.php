@@ -399,6 +399,18 @@ class UserController extends Controller
 
     public function crearTokenAcceso(Request $request)
     {
+        // Validar los campos requeridos
+        $request->validate([
+            'usuario' => 'required|exists:users,id',
+            'nombre' => 'required|string|max:255'
+        ], [
+            'usuario.required' => 'Debe seleccionar un usuario.',
+            'usuario.exists' => 'El usuario seleccionado no existe.',
+            'nombre.required' => 'El nombre del token es obligatorio.',
+            'nombre.string' => 'El nombre del token debe ser texto.',
+            'nombre.max' => 'El nombre del token no puede tener más de 255 caracteres.'
+        ]);
+
         $user = User::find($request->usuario);
 
         if (! $user) {
